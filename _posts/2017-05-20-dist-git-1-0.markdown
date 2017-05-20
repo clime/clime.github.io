@@ -75,8 +75,6 @@ while keeping a "link" in the Git repository next to the .spec and patches (if a
 another text file with an information about location of the tarball. This location is represented in a very specific way as you can see on the
 following example "sources" file:
 
-::
-
     $ cd somerepo
     $ cat sources
     SHA512 (prunerepo-1.10.tar.gz) = e8335bada83cc8c77050ece3b0f23871941c39a4bc8d2d7b320fac3cda32fda22d64292bcd51b0e994fcc0ae0c7ddc2ed1e249b91fe995b71e6e78699e26e66b
@@ -138,13 +136,9 @@ Normally, you would need a server machine and a client machine but for playing a
 
 First, install the dist-git package on the DistGit server (=localhost):
 
-::
-
     $ sudo dnf install dist-git
 
 or on CentOS, RHEL with EPEL7 enabled:
-
-::
 
     $ sudo yum install dist-git
 
@@ -152,8 +146,6 @@ Then, you need to setup Apache on the server (=localhost) for uploading source t
 There is ``/etc/httpd/conf.d/dist-git/lookaside-upload.conf.example`` provided by the package
 for ssl uploading with client certificates for authentication but we will use something
 more simple for the demonstration. Put the following into ``/etc/httpd/conf.d/dist-git/lookaside-upload.conf``:
-
-::
 
     <VirtualHost _default_:80>
         # This alias must come before the /repo/ one to avoid being overridden.
@@ -181,13 +173,9 @@ because the upload.cgi script (central core of DistGit) needs _some_ authenticat
 
 Then you also need to create the `distgit_user` and add it to `packager` group on the server.
 
-::
-
     $ sudo useradd distgit_user -G packager
 
 Then on the client install the `rpkg` package and put the following configuration into ``/etc/rpkg/rpkg.conf``:
-
-::
 
     [rpkg]
     lookaside = http://localhost/repo/pkgs
@@ -205,13 +193,9 @@ If the DistGit server is different from 'localhost', change it appropriately.
 Finally, you need to create `distgit_user` on the client for the test purpose
 (note that you don't need to do this if you use localhost for both DistGit server and a client):
 
-::
-
     $ sudo useradd distgit_user
 
 An example DistGit workflow might then look like this:
-
-::
 
     root@server $ /usr/share/dist-git/setup_git_package foo # creates Git repo on the server
     root@server $ ls /var/lib/dist-git/git
@@ -228,5 +212,5 @@ You don't need to use `root` user for the repository creation at the server. Any
 Anything else?
 --------------
 
-The DistGit upstream is hosted at https://github.com/release-engineering/dist-git. Please, send us patches and requests there.
+The DistGit upstream is hosted at <https://github.com/release-engineering/dist-git>. Please, send us patches and requests there.
 
