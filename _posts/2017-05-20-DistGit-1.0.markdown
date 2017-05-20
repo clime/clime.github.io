@@ -45,7 +45,7 @@ Why DistGit?
 ------------
 
 DistGit alias "Distributed Git" solves the problem by storing the source tarball outside of the Git repository in the so-called lookaside cache,
-while keeping a "link" in the Git repository next to the .spec and patches (if any). This "link" literally called "sources" is nothing else than
+while keeping a "link" in the Git repository next to the .spec and patches (if any). This "link", literally called "sources", is nothing else than
 another text file with an information about location of the tarball. This location is represented in a very specific way as you can see on the
 following example "sources" file:
 
@@ -53,8 +53,7 @@ following example "sources" file:
     $ cat sources
     SHA512 (prunerepo-1.10.tar.gz) = e8335bada83cc8c77050ece3b0f23871941c39a4bc8d2d7b320fac3cda32fda22d64292bcd51b0e994fcc0ae0c7ddc2ed1e249b91fe995b71e6e78699e26e66b
 
-The format might seem a bit cryptic but the hash is really nothing more than a part of an otherwise known file-system path and the "lookaside cache" is then
-nothing more then a directory at a predetermined path in that filesystem.
+The format might seem a bit cryptic but the hash is really nothing more than a part of an otherwise known file-system path and the "lookaside cache" is then nothing more than a directory at a predetermined path in that filesystem.
 
 There is not much else to be seen around here and really, in its gist, DistGit is just Git with few additional helper scripts for setting up new (Dist)Git repos
 and maintaining tarballs in the lookaside cache.
@@ -63,7 +62,7 @@ Why so much fuss around it then?
 --------------------------------
 
 DistGit was not always _this_ simple. The previous version 0.13 available in Fedora distribution contained a lot more including an ssh-based ACL system called
-[Gitolite](http://gitolite.com/gitolite/index.html) and also an integration with a Fedora Package database (`https://admin.fedoraproject.org/pkgdb`). It was
+[Gitolite](http://gitolite.com/gitolite/index.html) and also an integration with a [Fedora Package database](https://admin.fedoraproject.org/pkgdb). It was
 quite tightly bound to a specific use-case deployed in Fedora while also being outdated with respect to the wildly volatile scripts it was originally packaged from.
 
 DistGit 1.0, now released for Fedora and EPEL7, attempts to take much smaller bite by employing only the most fundamental parts that makes DistGit what it is while
