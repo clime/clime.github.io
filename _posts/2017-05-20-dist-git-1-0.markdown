@@ -1,36 +1,10 @@
----
-layout: post
-title:  "Welcome to Jekyll!"
-date:   2017-05-20 18:37:58 +0200
-categories: jekyll update
----
-You’ll find this post in your `_posts` directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run `jekyll serve`, which launches a web server and auto-regenerates your site when a file is updated.
-
-To add new posts, simply add a file in the `_posts` directory that follows the convention `YYYY-MM-DD-name-of-post.ext` and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.
-
-Jekyll also offers powerful support for code snippets:
-
-{% highlight ruby %}
-def print_hi(name)
-  puts "Hi, #{name}"
-end
-print_hi('Tom')
-#=> prints 'Hi, Tom' to STDOUT.
-{% endhighlight %}
-
-Check out the [Jekyll docs][jekyll-docs] for more info on how to get the most out of Jekyll. File all bugs/feature requests at [Jekyll’s GitHub repo][jekyll-gh]. If you have questions, you can ask them on [Jekyll Talk][jekyll-talk].
-
-[jekyll-docs]: https://jekyllrb.com/docs/home
-[jekyll-gh]:   https://github.com/jekyll/jekyll
-[jekyll-talk]: https://talk.jekyllrb.com/
-
 DistGit 1.0
 ===========
 
 Prolog
 ------
 
-If you are just looking for an immediate hands-on experience, skip to "Okay, I want to try the DistGit package out. How?". Everything
+If you are just looking for an immediate hands-on experience, skip to [Okay, I want to try the DistGit package out. How?][#okay-i-want-to-try-the-distgit-package-out-how]. Everything
 else is an interesting background.
 
 Introduction
@@ -89,7 +63,7 @@ Why so much fuss around it then?
 --------------------------------
 
 DistGit was not always _this_ simple. The previous version 0.13 available in Fedora distribution contained a lot more including an ssh-based ACL system called
-`Gitolite <http://gitolite.com/gitolite/index.html>`_ and also an integration with a Fedora Package database (`https://admin.fedoraproject.org/pkgdb`). It was
+[Gitolite](http://gitolite.com/gitolite/index.html) and also an integration with a Fedora Package database (`https://admin.fedoraproject.org/pkgdb`). It was
 quite tightly bound to a specific use-case deployed in Fedora while also being outdated with respect to the wildly volatile scripts it was originally packaged from.
 
 DistGit 1.0, now released for Fedora and EPEL7, attempts to take much smaller bite by employing only the most fundamental parts that makes DistGit what it is while
@@ -112,18 +86,18 @@ start using it as well.
 Is DistGit 1.0 already used somewhere?
 --------------------------------------
 
-Yes, it is used on copr-dist-git machine in `COPR <https://copr.fedorainfracloud.org>`_ build system stack.
+Yes, it is used on copr-dist-git machine in [COPR](https://copr.fedorainfracloud.org) build system stack.
 
 Are there alternatives?
 -----------------------
 
-There are. One of them is `Git-Annex <https://git-annex.branchable.com/git-annex/>`_ that enables storage of the binaries in multiple locations as oppossed to
+There are. One of them is [Git-Annex](https://git-annex.branchable.com/git-annex/) that enables storage of the binaries in multiple locations as oppossed to
 DistGit where they are stored in a single place only. Another difference is in client-side tooling. With Git-Annex, a well-known `git` command line tool is used
 as a client to manage the local repositories (with `git annex` subcommand to handle the binaries) and there is really not a difference between a client and server.
 All nodes working with the data are essentially the same. In DistGit world, there is a difference between a client pulling/pushing by using `git` and
 uplading/downloading using `rpkg` (or a derived tool like `fedpkg`) and a server on which the initial repository setup and authorization takes place.
 
-Then, there is also Git-LFS (https://git-lfs.github.com/) working in a similar spirit to Git-Annex.
+Then, there is also [Git-LFS](https://git-lfs.github.com/) working in a similar spirit to Git-Annex.
 
 The main advantage of the DistGit package that we develop is in its focus on _package_ collections. The `rpkg` client tool provides lots of useful subcommands such as
 `rpkg container-build`, `rpkg copr-build` that enables packagers to immediately send the new package content to a build system to obtain a final installable
