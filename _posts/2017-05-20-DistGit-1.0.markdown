@@ -4,7 +4,7 @@ DistGit 1.0
 Prolog
 ------
 
-If you are just looking for an immediate hands-on experience, skip to [Okay, I want to try the DistGit package out. How?][#okay-i-want-to-try-the-distgit-package-out-how]. Everything
+If you are just looking for an immediate hands-on experience, skip to [Okay, I want to try the DistGit package out. How?](#okay-i-want-to-try-the-distgit-package-out-how). Everything
 else is an interesting background.
 
 Introduction
