@@ -23,3 +23,210 @@ Check out the [Jekyll docs][jekyll-docs] for more info on how to get the most ou
 [jekyll-docs]: https://jekyllrb.com/docs/home
 [jekyll-gh]:   https://github.com/jekyll/jekyll
 [jekyll-talk]: https://talk.jekyllrb.com/
+
+DistGit 1.0
+===========
+
+Prolog
+------
+
+If you are just looking for an immediate hands-on experience, skip to "Okay, I want to try the DistGit package out. How?". Everything
+else is an interesting background.
+
+Introduction
+------------
+
+Almost everyone in the programming world knows Git. It's an alpha and omega of Source Content Management in the Linux environment and
+most of the programmers there cannot live without it. Everything is being tracked and code is being distributed all around the world
+to be built upon by more and more well-defined units of human work called Git commits.
+
+As opposed to that, nobody knows DistGit. Well...almost nobody. There are a few humanoids in Delta quadrant called "packagers" that collect
+all the work of the primarily application-focused programmers and make neat packages out of them that serve as a basis of any Linux operating
+system. These people _create_ an operating system so they should not be taken lightly even though their work is probably less creative than of
+the people creating these cool Vims, Gimps, and Sims.
+
+For those few humanoids and their work, Git is actually not the most suitable tool. Well...it is...but not without a few tweaks. And Git with
+those tweaks included is nothing else than DistGit.
+
+Why not Git?
+------------
+
+We have said that Git is not the weapon of choice for packagers but why exactly? Well, the reason is that a packager does not actually care
+all that much about the actual application sources (even though he needs to know them well in the end). What he cares most about are meta-data
+about the package such as build or run-time dependencies on other packages or installation steps that make it possible for the package to be
+installed and actually used by the end user.
+
+Therefore, in a package, sources are usually packed into a nice little (or huge) tarball with a file next to it called .spec file containing
+all those additional package information that are needed for a package to be a useful piece of the target Linux distribution. Note that here
+we are talking about so-called "source packages" and not about "binary packages" that are created from the source packages by a building process.
+
+So why not Git on its own? It's just because the tarballs (containing the source files) are not suitable to be tracked for content changes. They
+are binary and any small change in the original source might cause huge (and binary) changes in the resulting tarball. Packagers are interested
+in the .spec files and other optional files called "downstream patches", which are all in human-readable text and, hence, their diffs against
+their older version are comprehensible and useful.
+
+So what to do with that (big) dirty binary blob that cannot be put into our tiny, neat package Git repo...that's where DistGit comes in!
+
+Why DistGit?
+------------
+
+DistGit alias "Distributed Git" solves the problem by storing the source tarball outside of the Git repository in the so-called lookaside cache,
+while keeping a "link" in the Git repository next to the .spec and patches (if any). This "link" literally called "sources" is nothing else than
+another text file with an information about location of the tarball. This location is represented in a very specific way as you can see on the
+following example "sources" file:
+
+::
+
+    $ cd somerepo
+    $ cat sources
+    SHA512 (prunerepo-1.10.tar.gz) = e8335bada83cc8c77050ece3b0f23871941c39a4bc8d2d7b320fac3cda32fda22d64292bcd51b0e994fcc0ae0c7ddc2ed1e249b91fe995b71e6e78699e26e66b
+
+The format might seem a bit cryptic but the hash is really nothing more than a part of an otherwise known file-system path and the "lookaside cache" is then
+nothing more then a directory at a predetermined path in that filesystem.
+
+There is not much else to be seen around here and really, in its gist, DistGit is just Git with few additional helper scripts for setting up new (Dist)Git repos
+and maintaining tarballs in the lookaside cache.
+
+Why so much fuss around it then?
+--------------------------------
+
+DistGit was not always _this_ simple. The previous version 0.13 available in Fedora distribution contained a lot more including an ssh-based ACL system called
+`Gitolite <http://gitolite.com/gitolite/index.html>`_ and also an integration with a Fedora Package database (`https://admin.fedoraproject.org/pkgdb`). It was
+quite tightly bound to a specific use-case deployed in Fedora while also being outdated with respect to the wildly volatile scripts it was originally packaged from.
+
+DistGit 1.0, now released for Fedora and EPEL7, attempts to take much smaller bite by employing only the most fundamental parts that makes DistGit what it is while
+trimming off all the rest. Both Gitolite and integration with a package db can be added back easily if needed and that's because DistGit 1.0 is a really very simple
+package consisting of just a few scripts and configuration files. What matters the most are the data being maintained (Git repos + tarballs) and here you are completely
+free to:
+
+- use a fancier tool for Git authorization than just default ssh (e.g. gitolite)
+- init and maintain Git repos according to remote db records
+- use Kerberos for uploading tarballs into the lookaside cache
+- do anything else upon the data and the access to them
+
+I am talking about these possibilities because they are essential for the DistGit package to be a preferred option for maintaining large package collections.
+Currently, it's being integrated into Fedora package collection system and we hope, the labor will be successful in the end (looks like it will).
+
+Fedora basically uses DistGit already (at least scripts and the configs are all very similar to the ones in the actual DistGit package) but in a non-packaged and
+highly one-purposed manner. Extraction of the essential and general DistGit's parts into a standalone package can be useful because other distributions may then
+start using it as well.
+
+Is DistGit 1.0 already used somewhere?
+--------------------------------------
+
+Yes, it is used on copr-dist-git machine in `COPR <https://copr.fedorainfracloud.org>`_ build system stack.
+
+Are there alternatives?
+-----------------------
+
+There are. One of them is `Git-Annex <https://git-annex.branchable.com/git-annex/>`_ that enables storage of the binaries in multiple locations as oppossed to
+DistGit where they are stored in a single place only. Another difference is in client-side tooling. With Git-Annex, a well-known `git` command line tool is used
+as a client to manage the local repositories (with `git annex` subcommand to handle the binaries) and there is really not a difference between a client and server.
+All nodes working with the data are essentially the same. In DistGit world, there is a difference between a client pulling/pushing by using `git` and
+uplading/downloading using `rpkg` (or a derived tool like `fedpkg`) and a server on which the initial repository setup and authorization takes place.
+
+Then, there is also Git-LFS (https://git-lfs.github.com/) working in a similar spirit to Git-Annex.
+
+The main advantage of the DistGit package that we develop is in its focus on _package_ collections. The `rpkg` client tool provides lots of useful subcommands such as
+`rpkg container-build`, `rpkg copr-build` that enables packagers to immediately send the new package content to a build system to obtain a final installable
+binary package and there is more (see `man rpkg` for other useful commands like `rpkg lint` or `rpkg compile`).
+
+Okay, I want to try the DistGit package out. How?
+-------------------------------------------------
+
+Normally, you would need a server machine and a client machine but for playing around, you can just use localhost for both.
+
+First, install the dist-git package on the DistGit server (=localhost):
+
+::
+
+    $ sudo dnf install dist-git
+
+or on CentOS, RHEL with EPEL7 enabled:
+
+::
+
+    $ sudo yum install dist-git
+
+Then, you need to setup Apache on the server (=localhost) for uploading source tarballs.
+There is ``/etc/httpd/conf.d/dist-git/lookaside-upload.conf.example`` provided by the package
+for ssl uploading with client certificates for authentication but we will use something
+more simple for the demonstration. Put the following into ``/etc/httpd/conf.d/dist-git/lookaside-upload.conf``:
+
+::
+
+    <VirtualHost _default_:80>
+        # This alias must come before the /repo/ one to avoid being overridden.
+        ScriptAlias /repo/pkgs/upload.cgi /var/lib/dist-git/web/upload.cgi
+
+        Alias /repo/ /srv/cache/lookaside/
+
+        ServerName pkgs02.stg.phx2.fedoraproject.org
+        ServerAdmin webmaster@fedoraproject.org
+
+        LogLevel trace8
+
+        # provide this manually for upload.cgi
+        SetEnv SSL_CLIENT_S_DN_CN distgit_user
+
+        <Location /repo/pkgs/upload.cgi>
+            Options +ExecCGI
+            Require all granted
+        </Location>
+
+    </VirtualHost>
+
+and reload the httpd server. Note that we fake ssl authentication purely for demonstration purposes here
+because the upload.cgi script (central core of DistGit) needs _some_ authentication (SSL or Kerberos).
+
+Then you also need to create the `distgit_user` and add it to `packager` group on the server.
+
+::
+
+    $ sudo useradd distgit_user -G packager
+
+Then on the client install the `rpkg` package and put the following configuration into ``/etc/rpkg/rpkg.conf``:
+
+::
+
+    [rpkg]
+    lookaside = http://localhost/repo/pkgs
+    lookasidehash = sha512
+    lookaside_cgi = http://localhost/repo/pkgs/upload.cgi
+    gitbaseurl = ssh://%(user)s@localhost/var/lib/dist-git/git/%(module)s
+    anongiturl = git://localhost/%(module)s
+    branchre = f\d$|f\d\d$|el\d$|olpc\d$|master$
+    kojiconfig = /etc/koji.conf
+    build_client = koji
+    clone_config = bz.default-component %(module)s
+
+If the DistGit server is different from 'localhost', change it appropriately.
+
+Finally, you need to create `distgit_user` on the client for the test purpose
+(note that you don't need to do this if you use localhost for both DistGit server and a client):
+
+::
+
+    $ sudo useradd distgit_user
+
+An example DistGit workflow might then look like this:
+
+::
+
+    root@server $ /usr/share/dist-git/setup_git_package foo # creates Git repo on the server
+    root@server $ ls /var/lib/dist-git/git
+    foo.git
+
+    distgit_user@client $ rpkg clone foo # clones remote foo.git repo
+    distgit_user@client $ cd foo
+    distgit_user@client $ rpkg import foo.src.rpm # uploads src.rpm into dist-git and modifies local repo accordingly
+    distgit_user@client $ git commit -m "DistGit test update" -a # commit changes to the local Git repo
+    distgit_user@client $ git push # push changes to the Git repos on the DistGit server
+
+You don't need to use `root` user for the repository creation at the server. Any user in the `packager` group is suitable.
+
+Anything else?
+--------------
+
+The DistGit upstream is hosted at https://github.com/release-engineering/dist-git. Please, send us patches and requests there.
+
