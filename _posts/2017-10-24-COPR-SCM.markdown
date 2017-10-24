@@ -1,0 +1,32 @@
+COPR SCM
+========
+
+Prolog
+------
+
+Do you have your RPM package sources placed in a publicly available Git or SVN repo? Would you like to build them in the most easiest way 
+and even automate that process? Then this article is exactly for you.
+
+Ok, you have my ear
+-------------------
+
+Cool! Well, maybe you have already heard about [COPR](https://copr.fedorainfracloud.org) build system. This is where we will be doing our
+setup to automatically rebuild your packages. Why there? Because this is the place to make your work public, or if you don't want that yet,
+just to test it and share the built rpm binaries with other developers. The linked COPR instance is part of Fedora Project but COPR source
+code itself (https://pagure.io/copr/copr) is not bound to a particular distribution.
+
+Simple Howto
+------------
+
+So let's dive into it. Let's say you have your repo hosted on Github as me here: https://github.com/clime/blog-tutorial-flat-unpacked and
+you want to make an installable RPM package out of it. First you need login and create a COPR project dedicated for building packages
+out of your repo(s). If you haven't done it before, follow instructions [here](https://docs.pagure.org/copr.copr/). Otherwise, let's 
+continue to the building part:
+
+1) Go to your created project page
+2) Click on **Builds**
+3) Click on **New build** and select **SCM** tab
+4) Insert <your project url> into **Clone URL:** field
+5) Click on blue **Build** button at the bottom
+
+
