@@ -21,12 +21,10 @@ Simple Howto
 So let's dive into it. Let's say you have your repo hosted on Github as me here: https://github.com/clime/blog-tutorial-flat-unpacked and
 you want to make an installable RPM package out of it. First you need login and create a COPR project dedicated for building packages
 out of your repo(s). If you haven't done it before, follow instructions [here](https://docs.pagure.org/copr.copr/). Otherwise, let's 
-continue to the building part:
+jump to the building part:
 
-1) Go to your created project page
-2) Click on **Builds**
-3) Click on **New build** and select **SCM** tab
-4) Insert <your project url> into **Clone URL:** field
-5) Click on blue **Build** button at the bottom
-
-
+    1) Go to your created project page
+    2) Click on **Builds**
+    3) Click on **New build** and select **SCM** tab
+    4) Insert <your project url> into **Clone URL:** field
+    5) Click on blue **Build** button at the bottom
