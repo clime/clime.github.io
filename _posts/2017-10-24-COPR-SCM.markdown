@@ -17,7 +17,7 @@ Ok, you got my attention
 Cool! Well, maybe you have already heard about [COPR](https://copr.fedorainfracloud.org) build system. This is where we will be doing our
 setup to automatically rebuild your packages. Why there? Because this is the place to make your work public, or if you don't want that yet,
 just to test it and share the built rpm binaries with other developers. The linked COPR instance is part of Fedora Project but COPR source
-code itself: <https://pagure.io/copr/copr> is distribution independant and if you want you can setup your own COPR instance for custom
+code itself: <https://pagure.io/copr/copr> is distribution independent and if you want you can setup your own COPR instance for custom
 purposes.
 
 Simple Howto
@@ -25,8 +25,7 @@ Simple Howto
 
 So let's dive into the work. Let's say you have your repo hosted at Github as me here: <https://github.com/clime/blog-tutorial-flat-unpacked> and
 you want to make a publicly accessible RPM package that can be very easily installed by users (or fellow programmers). First you need login and
-create a COPR project dedicated to build your packages. If you haven't done it before, follow the instructions [here](https://docs.pagure.org/copr.copr/).
-Otherwise, let's jump immediately to the building part:
+create a COPR project dedicated to build your packages. If you haven't done it before, follow (a bit older) instructions [here](https://docs.pagure.org/copr.copr/screenshots_tutorial.html#screenshots-tutorial). Otherwise, let's jump immediately to the building part:
 
 *Picture (click it to enlarge):*
 
@@ -46,7 +45,7 @@ Git (or SVN) repo, leave the rest as is, and click the <span style="color:white;
 Notice the name of the repository: *blog-tutorial-flat-unpacked*. Now the same steps will work even for <https://github.com/clime/blog-tutorial-flat-packed>,
 yet if you look at the content of the repository, it looks quite a bit different from the unpacked one. COPR supports building from both repository content types
 and you don't need to tell it what type it is dealing with. This information is being automatically determined by the [rpkg](https://pagure.io/rpkg-client)
-utilility.
+utility.
 
 You can find a real COPR build for [blog-tutorial-flat-unpacked](https://github.com/clime/blog-tutorial-flat-unpacked) here: <https://copr.fedorainfracloud.org/coprs/clime/blog-tutorial/build/650291/>.
 
@@ -71,8 +70,7 @@ subdirectory if not specified).
 
 Then there are also two other standalone configuration sections: *3. How to build SRPM from the source* and *4. Select chroots and other options*. The section
 *3.* allows you to select the tool to be used for SRPM generation (out of **rpkg**, **tito**, **tito test**, **make srpm** options) and will be covered to the full
-extent later. Section *4.* is shared accross all Build Forms and is so typical for COPR that it won't be covered in this tutorial
-(you can read more [here](https://docs.pagure.org/copr.copr/)).
+extent later. Section *4.* is shared across all Build Forms and will be covered in a future tutorial.
 
 <hr/>
 
@@ -122,7 +120,7 @@ Finally, let's check out this one:
 
 Here, we demand that the specific commit **22e86970f04a0a48dcebabe237e51064790965c6** will be checked out and instead of **/rpm/your.spec**, the spec file inside **subpkg2** directory
 will be used (after being auto-located based on `.spec` extension). Using a different spec file basically means a different package with different
-content might be built. But this is more advanced topic and you should read more [here](How to write spec files) if you want to get more information
+content might be built. But this is more advanced topic and you should read more [here](https://rpm-packaging-guide.github.io/) if you want to get more information
 about how to write `spec` files and what all you can configure in them.
 
 Real COPR build: <https://copr.fedorainfracloud.org/coprs/clime/blog-tutorial/build/656554/>
@@ -278,4 +276,4 @@ Of course, you can also setup the webhook with the `copr-cli` client but that's 
 Epilog
 ------
 
-Well, this is a bit long tutorial but underlyingly, it's all about the idea that you can just smack any Git or SVN URL into the **Clone URL** field and that's it (except clicking the **Build** button of course). There are many more options but it's up to you if you use them or not. Oh yeah...one more thing...If you try to use the **rpkg** tool and install it from Fedora, it won't work because the Fedora version is very outdated at the moment. Update is coming soon but you can find an up-to-date version also at <https://copr.fedorainfracloud.org/coprs/clime/rpkg-client/>. This latest version allows building directly from Fedora DistGit forks.
+Well, this is a bit long tutorial but underlyingly, it's all about the idea that you can just smack any Git or SVN URL into the **Clone URL** field and that's it (except clicking the **Build** button of course). There are many more options but it's up to you if you use them or not. Oh yeah...one more thing...If you try to use the **rpkg** tool and install it from Fedora, it won't work because the Fedora version is very outdated. Update is coming soon but you can find an up-to-date version also at <https://copr.fedorainfracloud.org/coprs/clime/rpkg-client/>. This latest version allows building directly from Fedora DistGit forks.
