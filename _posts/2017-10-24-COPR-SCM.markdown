@@ -258,7 +258,7 @@ So...let's push something now into <https://github.com/clime/blog-tutorial-flat-
 Can I do all this by using command-line?
 ----------------------------------------
 
-Yes, you can! But you need the latest python3-copr and copr-cli packages available now only in @copr/copr repo. They should [land](https://bodhi.fedoraproject.org/updates/FEDORA-2017-83f91bf187) in Fedora soon, however. If you have `dnf-plugins-core` installed, then you can do the following to install the latest COPR client tools (also follow the instructions here <https://copr.fedorainfracloud.org/api/> to get API token):
+Yes, you can! But you need the latest `python3-copr` and `copr-cli` packages available now only in @copr/copr repo. They should [land](https://bodhi.fedoraproject.org/updates/FEDORA-2017-83f91bf187) in Fedora soon, however. If you have `dnf-plugins-core` installed, then you can do the following to install the latest COPR client tools (also follow the instructions here <https://copr.fedorainfracloud.org/api/> to get API token):
 
     # dnf copr enable -y @copr/copr
     # dnf install -y python3-copr copr-cli --best
@@ -276,4 +276,4 @@ Of course, you can also setup the webhook with the `copr-cli` client but that's 
 Epilog
 ------
 
-Well, this is a bit long tutorial but underlyingly, it's all about the idea that you can just smack any Git or SVN URL into the **Clone URL** field and that's it (except clicking the **Build** button of course). There are many more options but it's up to you if you use them or not. Oh yeah...one more thing...If you try to use the **rpkg** tool and install it from Fedora, it won't work because the Fedora version is very outdated. Update is coming soon but you can find an up-to-date version also at <https://copr.fedorainfracloud.org/coprs/clime/rpkg-client/>. This latest version allows building directly from Fedora DistGit forks.
+Well, this is a bit long tutorial but underlyingly, it's all about the idea that you can just smack any Git or SVN URL into the **Clone URL** field and that's it (except clicking the **Build** button of course). There are many more options but it's up to you if you use them or not. Oh yeah...one more thing...If you try to use the **rpkg** tool and install it from Fedora, it won't work because the Fedora version is very outdated. Update is coming soon but you can find an up-to-date version at <https://copr.fedorainfracloud.org/coprs/clime/rpkg-client/>. This latest version allows building directly from Fedora DistGit forks.
