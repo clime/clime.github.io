@@ -107,7 +107,7 @@ What about this?
 - Subdirectory: **subpkg1**
 - Spec File: **/rpm/your.spec**
 
-The same repository is cloned and the same branch is checked out. But this time, the SRPM generator will be invoked inside **subpkg-unpacked** directory
+The same repository is cloned and the same branch is checked out. But this time, the SRPM generator will be invoked inside **subpkg1** directory
 and the tool will be fed with **/rpm/subpkg2.spec** as the path to the RPM spec file.
 
 Real COPR build: <https://copr.fedorainfracloud.org/coprs/clime/blog-tutorial/build/656553/>
@@ -251,7 +251,7 @@ If you follow these settings specifically for Github, you should get to the scre
 
 So...let's push something now into <https://github.com/clime/blog-tutorial-flat-unpacked> and hope it will be auto-rebuilt...
 
-https://copr.fedorainfracloud.org/coprs/clime/blog-tutorial/build/656698/
+<https://copr.fedorainfracloud.org/coprs/clime/blog-tutorial/build/656698/>
 
 \o/
 
@@ -260,7 +260,7 @@ https://copr.fedorainfracloud.org/coprs/clime/blog-tutorial/build/656698/
 Can I do all this by using command-line?
 ----------------------------------------
 
-Yes, you can! But you need the latest python3-copr and copr-cli packages available now only in @copr/copr repo. They should [land](https://bodhi.fedoraproject.org/updates/FEDORA-2017-83f91bf187) in Fedora soon however. If you have `dnf-plugins-core` installed, then you can do the following to install the latest COPR client tools (also follow the instructions here <https://copr.fedorainfracloud.org/api/> to get API token):
+Yes, you can! But you need the latest python3-copr and copr-cli packages available now only in @copr/copr repo. They should [land](https://bodhi.fedoraproject.org/updates/FEDORA-2017-83f91bf187) in Fedora soon, however. If you have `dnf-plugins-core` installed, then you can do the following to install the latest COPR client tools (also follow the instructions here <https://copr.fedorainfracloud.org/api/> to get API token):
 
     # dnf copr enable -y @copr/copr
     # dnf install -y python3-copr copr-cli --best
