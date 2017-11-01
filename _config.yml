@@ -23,7 +23,7 @@ twitter_username: clime7
 github_username:  clime
 
 disqus:
-  shortname: clime.github.io
+  shortname: clime-github-io
 
 # Build settings
 markdown: kramdown
