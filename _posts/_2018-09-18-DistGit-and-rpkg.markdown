@@ -4,17 +4,17 @@ DistGit and rpkg
 Prolog
 ------
 
-This is an update on this blog post https://clime.github.io/2017/05/20/DistGit-1.0.html and particularly on its hands-on part.
+This is an update on this blog post https://clime.github.io/2017/05/20/DistGit-1.0.html and mainly on its hands-on part.
 
-There have been a continuous effort in the area of linux distribution maintenance to make its tooling reusable and accessible
-as much as possible. Finally, this quick note is presenting the results of this effort to you. It will give you an idea how
-big distros like Fedora or RHEL are maintained and it will also show you a way to maintain your own linux distribution.
+There have been a continuous effort in the area of linux distribution maintenance to make the tooling reusable and accessible
+as much as possible. Finally, this rather quick note is presenting the results of this effort to you. It will give you an idea
+how big distros like Fedora or RHEL are maintained and it will also show you a way to maintain your own linux distribution.
 
 Okay, I want to try this DistGit and rpkg combo out. How?
 ---------------------------------------------------------
 
-Normally, you would use a server machine and a client machine but for simple playing around, we can use localhost
-to substitute both. We recommend to create an isolated container or a virtual machine to carry out the procedure.
+Normally, you would use a server machine and a client machine but for a simple playing around, we can just use localhost
+to substitute for both. We recommend to create an isolated container or a virtual machine to carry out the tutorial.
 
 First, install the dist-git package:
 
@@ -28,7 +28,7 @@ Next step is to setup Apache for uploading source tarballs.
 
 There is ``/etc/httpd/conf.d/dist-git/lookaside-upload.conf.example`` provided by the dist-git package
 for ssl uploading with authentication by client certificates but we will use something much more simple
-for the demonstration. Put the following into ``/etc/httpd/conf.d/dist-git/lookaside-upload.conf``:
+for the demonstration. Put the following lines into ``/etc/httpd/conf.d/dist-git/lookaside-upload.conf``:
 
     <VirtualHost _default_:80>
         # This alias must come before the /repo/ one to avoid being overridden.
@@ -45,34 +45,34 @@ for the demonstration. Put the following into ``/etc/httpd/conf.d/dist-git/looka
             Options +ExecCGI
             Require all granted
         </Location>
-
     </VirtualHost>
 
 Now you can start the httpd server:
 
     # systemctl start httpd
 
-If you hit problems with localhost ssl certs missing, move `/etc/httpd/conf.d/ssl.conf`
-into `/etc/httpd/conf.d/ssl.conf.off`.
+If you hit problems with localhost ssl certs missing on httpd start, move
+`/etc/httpd/conf.d/ssl.conf` to `/etc/httpd/conf.d/ssl.conf.off` and try again.
 
-We will now create two users that will carry out all the non-privileged tutorial actions.
+We will now create two users that will carry out all the unprivileged tutorial actions.
 User **joe** will be responsible for all client operations (i.e. cloning/pushing) and
 user **admin** will be responsible for all server operations (i.e. setting up a new
 package repo or chilling out). Both **joe** and **admin** need to belong `packager`
-group that got created by installing the dist-git package.
+group that got created on installation of the dist-git package.
 
     # useradd admin -G packager
     # useradd joe -G packager
 
-There is very few things missing. First, start dist-git.socket service so that `git://`
-protocol works for anonymous read-only access:
+There is very few things missing at this point. First, start dist-git.socket service
+so that `git://` protocol works for anonymous read-only access (we shall use it later):
 
     # systemctl start dist-git.socket
     # systemctl status dist-git.socket  # state should be "active (listening)"
 
-Now make sure sshd is up and running which we will use for authorized Git read/write access.
+Now we will make sure sshd is up and running which we will be used for authorized
+Git read/write access.
 
-To install sshd on Fedora, run:
+To install ssh server on Fedora, run:
 
     # dnf install openssh-server
 
@@ -80,12 +80,12 @@ To install it on EPEL, run:
 
     # yum install openssh-server
 
-Then finally:
+Then finally on both distros, you can run:
 
     # systemctl start sshd
     # systemctl status sshd  # state should be "active (running)"
 
-And also let's configure public key access to localhost for user joe:
+Also, let's configure public key access to localhost for user joe:
 
     # su joe
 
@@ -105,7 +105,7 @@ On EPEL, you can install the rpkg package from a copr repository:
     # yum copr enable clime/rpkg-util
     # yum install rpkg
 
-Now put the following configuration into ``/etc/rpkg.conf``:
+Put the following configuration into ``/etc/rpkg.conf``:
 
     [rpkg]
     preprocess_spec = True
@@ -197,14 +197,14 @@ Let's do it with -a switch, which uses the git:// scheme and read-only git-smart
     Wrote: /tmp/rpkg/prunerepo-2-_w0wu16l/prunerepo.spec
     Wrote: /tmp/rpkg/prunerepo-2-_w0wu16l/prunerepo-1.13-1.fc27.src.rpm
 
-Pretty cool, right? You basically can start your own linux distribution from this
+Pretty cool, right? You can basically start your own linux distribution from this
 very basic initial setup.
 
 Needless to say, so far we have show-cased work with traditional packed sources only (spec + patches + tarballs)
 and this is how Fedora, CentOS, RHEL, Mageia and other distros work.
 
-But what is quite special about this setup (DistGit+rpkg) is that you can have unpacked sources repos (spec +
-raw source files) as well and that's thanks to support for this in the rpkg utility.
+What is quite special about this setup (DistGit+rpkg) is that you can have unpacked sources repos
+(spec + raw source files) as well and that's thanks to support for this in the rpkg utility.
 
 Let's take https://pagure.io/rpkg-util project itself, which is raw sources with spec, and port it to
 our setup here. 
@@ -227,7 +227,7 @@ We may remove it as we won't probably be using lookaside cache for this particul
     joe@localhost hello_rpkg $ git commit -a -m 'remove unneeded sources file'
 
 **Note:** In the current upstream version of dist-git at https://github.com/release-engineering/dist-git,
-the 'sources' file is no longer being precreated.
+the empty 'sources' file is no longer being pregenerated.
 
 And let's push:
 
@@ -248,8 +248,8 @@ Now it is time a play around with the code a little bit. So let's again try to g
 
 You can see that it works as well as it worked for the packed case (spec+patches+tarballs). How is that
 even possible? You will find out when you closer examine the hello_rpkg.spec.rpkg file, which is an rpkg
-spec file template and particularly at the line defining an rpm source ('Source:'), which is usually
-a tarball stored in the lookaside cache:
+spec file template. Particularly, let's examine the line defining an rpm source ('Source:'), which is
+usually a tarball stored in the lookaside cache:
 
     joe@localhost hello_rpkg $ grep 'Source:' hello_rpkg.spec.rpkg
     Source:     {{{ git_dir_pack }}}
@@ -262,6 +262,10 @@ you download it).
 
 This feature of `rpkg` utility enables you to work with the sources in their unpacked form and
 only pack them when you want to build them.
+
+That's it. That's the basic gist of how it works under the hood in Fedora and similarly, in
+other rpm distros. Although all those distros still use just the traditional spec+patches+tarballs
+approach exclusively...
 
 Anything else?
 --------------
