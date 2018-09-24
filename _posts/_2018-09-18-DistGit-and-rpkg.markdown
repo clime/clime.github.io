@@ -4,38 +4,31 @@ DistGit and rpkg
 Prolog
 ------
 
-This is an update on this blog post https://clime.github.io/2017/05/20/DistGit-1.0.html and on the hands-on part in particular.
-There have been many advancements in this area lately and this quick note should help you to setup your own DistGit instance
-and show you how to easily handle it with rpkg utility. rpkg and DistGit combination is useful if you wish to maintain
-your own set of rpm packages. Originally, it was possible to only store tarballs+patches in DistGit but the latest upgrades in
-rpkg-util allows users to store unpacked (raw) sources in the DistGit repositories as well and the lookaside cache for storing
-tarballs or other large files becomes an optional feature. That is a pretty great advancement in the packaging world because
-packager and upstream developer workflows come much closer together.
+This is an update on this blog post https://clime.github.io/2017/05/20/DistGit-1.0.html and particularly on its hands-on part.
+
+There have been a continuous effort in the area of linux distribution maintenance to make its tooling reusable and accessible
+as much as possible. Finally, this quick note is presenting the results of this effort to you. It will give you an idea how
+big distros like Fedora or RHEL are maintained and it will also show you a way to maintain your own linux distribution.
 
 Okay, I want to try this DistGit and rpkg combo out. How?
 ---------------------------------------------------------
 
-Normally, you would need a server machine and a client machine but for playing around, we will just use localhost for both.
-We recommend to do the following procedure in an isolated container. We will asume that all the unprivileged operations are
-done by user fred.
+Normally, you would use a server machine and a client machine but for simple playing around, we can use localhost
+to substitute both. We recommend to create an isolated container or a virtual machine to carry out the procedure.
 
-First, install the dist-git package on the DistGit server (=localhost):
+First, install the dist-git package:
 
-    $ sudo dnf install dist-git
+    # dnf install dist-git
 
 or on CentOS7 or RHEL7 with EPEL7 enabled:
 
-    $ sudo yum install dist-git
+    # yum install dist-git
 
-You can now setup Apache on the server (=localhost) for uploading source tarballs. In case you would like to store
-unpacked sources on DistGit only, you don't even need to do that. DistGit then essentially becomes just a normal Git
-server with some configuration already in place.
+Next step is to setup Apache for uploading source tarballs.
 
-So you can just skip this part if you don't need the lookaside cache...
-
-There is ``/etc/httpd/conf.d/dist-git/lookaside-upload.conf.example`` provided by the package
-for ssl uploading with client certificates for authentication but we will use something
-more simple for the demonstration. Put the following into ``/etc/httpd/conf.d/dist-git/lookaside-upload.conf``:
+There is ``/etc/httpd/conf.d/dist-git/lookaside-upload.conf.example`` provided by the dist-git package
+for ssl uploading with authentication by client certificates but we will use something much more simple
+for the demonstration. Put the following into ``/etc/httpd/conf.d/dist-git/lookaside-upload.conf``:
 
     <VirtualHost _default_:80>
         # This alias must come before the /repo/ one to avoid being overridden.
@@ -46,7 +39,7 @@ more simple for the demonstration. Put the following into ``/etc/httpd/conf.d/di
         LogLevel trace8
 
         # provide username manually to upload.cgi
-        SetEnv SSL_CLIENT_S_DN_CN fred
+        SetEnv SSL_CLIENT_S_DN_CN joe
 
         <Location /repo/pkgs/upload.cgi>
             Options +ExecCGI
@@ -57,40 +50,60 @@ more simple for the demonstration. Put the following into ``/etc/httpd/conf.d/di
 
 Now you can start the httpd server:
 
-    $ sudo systemctl start httpd
+    # systemctl start httpd
 
 If you hit problems with localhost ssl certs missing, move `/etc/httpd/conf.d/ssl.conf`
 into `/etc/httpd/conf.d/ssl.conf.off`.
 
-Now make sure fred belongs to `packager` group:
+We will now create two users that will carry out all the non-privileged tutorial actions.
+User **joe** will be responsible for all client operations (i.e. cloning/pushing) and
+user **admin** will be responsible for all server operations (i.e. setting up a new
+package repo or chilling out). Both **joe** and **admin** need to belong `packager`
+group that got created by installing the dist-git package.
 
-    $ sudo usermod fred -G packager
+    # useradd admin -G packager
+    # useradd joe -G packager
 
-This will allow you to upload tarballs to DistGit's lookaside cache as well as push changes.
-Just to enable uploading, you could also go to `/etc/dist-git/dist-git.conf` and set
-`disable_group_check = True` in `[upload]` section. 
+There is very few things missing. First, start dist-git.socket service so that `git://`
+protocol works for anonymous read-only access:
 
-That's it for the lookaside cache configuration. For the server-side configuration, there is very few
-things missing. First, start dist-git.socket service so that `git://` protocol works for anonymous
-read-only access:
+    # systemctl start dist-git.socket
+    # systemctl status dist-git.socket  # state should be "active (listening)"
 
-    $ sudo systemctl start dist-git.socket
+Now make sure sshd is up and running which we will use for authorized Git read/write access.
 
-And also let's configure public key access to localhost for user fred:
+To install sshd on Fedora, run:
 
-    $ ssh-keygen
-    $ cat .ssh/id_rsa.pub >> .ssh/authorized_keys
-    $ chmod 600 .ssh/authorized_keys
+    # dnf install openssh-server
+
+To install it on EPEL, run:
+
+    # yum install openssh-server
+
+Then finally:
+
+    # systemctl start sshd
+    # systemctl status sshd  # state should be "active (running)"
+
+And also let's configure public key access to localhost for user joe:
+
+    # su joe
+
+    joe@localhost / $ cd
+    joe@localhost ~ $ ssh-keygen # press enter on everything
+    joe@localhost ~ $ cat .ssh/id_rsa.pub >> .ssh/authorized_keys
+    joe@localhost ~ $ chmod 600 .ssh/authorized_keys
+    joe@localhost ~ $ ssh localhost # should work after typing 'yes'
 
 Now for the client part, install the `rpkg` package. On Fedora, you can just invoke:
 
-    $ sudo dnf install rpkg
+    # dnf install rpkg
 
-On EPEL6 or EPEL7, you can install the rpkg package from a copr repository:
+On EPEL, you can install the rpkg package from a copr repository:
 
-    $ sudo yum install yum-plugin-copr
-    $ sudo yum copr enable clime/rpkg-util
-    $ sudo yum install rpkg
+    # yum install yum-plugin-copr
+    # yum copr enable clime/rpkg-util
+    # yum install rpkg
 
 Now put the following configuration into ``/etc/rpkg.conf``:
 
@@ -108,25 +121,33 @@ Now put the following configuration into ``/etc/rpkg.conf``:
     gitbaseurl = ssh://%(user)s@localhost/var/lib/dist-git/git/%(module)s
     anongiturl = git://localhost/%(module)s
 
-Let's create our first DistGit repository. This needs to be done server-side:
+That's it! Let's create our first DistGit repository.
 
-    root@localhost $ /usr/share/dist-git/setup_git_package foo # creates Git repo on the server
-    root@localhost $ ls /var/lib/dist-git/git/rpms
-    foo.git
+    # su admin
 
-You don't need to use `root` user for the repository creation at the server.
-Any user in the `packager` group is suitable.
+    admin@localhost / $ /usr/share/dist-git/setup_git_package package # creates Git repo on the server
+    Generating initial grok manifest...
+    Done.
+    admin@localhost / $ ls /var/lib/dist-git/git/rpms
+    package.git
 
 Now you can already interact with the created DistGit repository by using rpkg:
+    
+    admin@localhost / $ exit
 
-    $ rpkg clone package # clones remote foo.git repo
-    $ cd package
+    # su joe
+
+    joe@localhost / $ cd
+    joe@localhost ~ $ rpkg clone package # clones remote foo.git repo
+    joe@localhost ~ $ cd package
+    joe@localhost package $ ls
+    sources
 
 Now we are in our local Git repository. Let's initialize it with some public source rpm:
 
-    $ curl https://clime.cz/prunerepo-1.13-1.fc28.src.rpm -o /tmp/prunerepo-1.13-1.fc28.src.rpm
-    $ rpkg import /tmp/prunerepo-1.13-1.fc28.src.rpm   # unpack src.rpm, upload tarballs dist-git's lookaside and modify local repo accordingly
-    $ git status                                       # display what has been changed in the local git repo
+    joe@localhost package $ curl https://clime.cz/prunerepo-1.13-1.fc28.src.rpm -o /tmp/prunerepo-1.13-1.fc28.src.rpm
+    joe@localhost package $ rpkg import /tmp/prunerepo-1.13-1.fc28.src.rpm # unpack src.rpm, upload tarballs dist-git's lookaside and modify local repo accordingly
+    joe@localhost package $ git status                                     # display what has been changed in the local git repo
     On branch master
     Your branch is up-to-date with 'origin/master'.
 
@@ -137,64 +158,110 @@ Now we are in our local Git repository. Let's initialize it with some public sou
             new file:   prunerepo.spec
             modified:   sources
 
-    $ cat sources                                      # let's display the pointer to the lookaside cache for the uploaded tarball
+    joe@localhost package $ cat sources                                    # let's display the pointer to the lookaside cache for the uploaded tarball
     SHA512 (prunerepo-1.13.tar.gz) = 25c3f6e42f390e4e2215f0f24fea4a0482ee910ce7fa129c8d91c33bf350d31c564796721437a053ad34bdddb67c36cbb8130b5e54c5bf6af9d68bed0e983244
 
-    $ git config --global user.email "fred@localhost"  # set user git commit info
-    $ git config --global user.name "fred"
+    joe@localhost package $ git config --global user.email "joe@localhost" # set user git commit info
+    joe@localhost package $ git config --global user.name "joe"
 
-    $ git commit -m "DistGit test update" -a           # commit changes to the local Git repo
-    $ git rev-parse master                             # show commit hash
+    joe@localhost package $ git commit -m "DistGit test update" -a         # commit changes to the local Git repo
+    joe@localhost package $ git rev-parse master                           # show commit hash, output will differ for you
     d8d68e0d8e47455ca686516b45a65e37d752fbbd
-    $ rpkg push                                        # push local git changes to DistGit, rpkg push invokes git push --follow-tags 
-    $ rpkg srpm                                        # build srpm just to test things out
+    joe@localhost package $ rpkg push                                      # push local git changes to DistGit
+    joe@localhost package $ rpkg srpm                                      # build srpm just to test things out
     Wrote: /tmp/rpkg/prunerepo-1-qzygm0hc/prunerepo.spec
-    Wrote: /tmp/rpkg/prunerepo-1-qzygm0hc/prunerepo-1.13-1.fc27.src.rpm
-    $ rpkg build                                       # build package in Copr BuildSystem, this needs copr-cli tool to be installed
+    Wrote: /tmp/rpkg/prunerepo-1-qzygm0hc/prunerepo-1.13-1.fc28.src.rpm
+    joe@localhost package $ rpkg build                                     # build package in Copr BuildSystem, this needs copr-cli tool to be installed
     ...
 
 You can also verify that the changes got into the DistGit server:
 
-    $ cat /var/lib/dist-git/git/rpms/package.git/refs/heads/master
+    joe@localhost package $ cat /var/lib/dist-git/git/rpms/package.git/refs/heads/master
     d8d68e0d8e47455ca686516b45a65e37d752fbbd
-    $ ls /var/lib/dist-git/cache/lookaside/pkgs/rpms/package/prunerepo-1.13.tar.gz/sha512/25c3f6e42f390e4e2215f0f24fea4a0482ee910ce7fa129c8d91c33bf350d31c564796721437a053ad34bdddb67c36cbb8130b5e54c5bf6af9d68bed0e983244/prunerepo-1.13.tar.gz
+    joe@localhost package $ ls /var/lib/dist-git/cache/lookaside/pkgs/rpms/package/prunerepo-1.13.tar.gz/sha512/25c3f6e42f390e4e2215f0f24fea4a0482ee910ce7fa129c8d91c33bf350d31c564796721437a053ad34bdddb67c36cbb8130b5e54c5bf6af9d68bed0e983244/prunerepo-1.13.tar.gz
 
-And you can, of course, now clone the repo and start from scratch. Let's do it with -a switch,
-which uses the git:// scheme and read-only git-smart-http Git backend.
+And you can, of course, now clone the repo and start doing something from scratch.
+Let's do it with -a switch, which uses the git:// scheme and read-only git-smart-http Git backend.
 
-    $ rpkg clone -a package package-copy 
-    $ cd package-copy
-    $ ls
+    joe@localhost package $ cd
+    joe@localhost ~ $ rpkg clone -a package package-copy
+    joe@localhost package-copy $ cd package-copy
+    joe@localhost package-copy $ ls
     prunerepo.spec  sources
-    $ rpkg sources                            # fetch the tarball
+    joe@localhost package-copy $ rpkg sources # fetch the tarball
     Downloading prunerepo-1.13.tar.gz from lookaside cache at localhost
     ######################################################################## 100.0%
-    $ ls
+    joe@localhost package-copy $ ls
     prunerepo-1.13.tar.gz  prunerepo.spec  sources
-    $ rpkg srpm                               # build srpm again just to see that it works
+    joe@localhost package-copy $ rpkg srpm # build srpm again just to see that it works
     Wrote: /tmp/rpkg/prunerepo-2-_w0wu16l/prunerepo.spec
     Wrote: /tmp/rpkg/prunerepo-2-_w0wu16l/prunerepo-1.13-1.fc27.src.rpm
 
 Pretty cool, right? You basically can start your own linux distribution from this
 very basic initial setup.
 
-Needless to say, so far we have show-cased work with traditional packed sources only (spec+patches+tarballs)
-and this is how Fedora, CentOS, RHEL, Mageia, ... distros work. But what is quite unique on this setup now
-(DistGit+rpkg) is that you can have unpacked sources repos as well and that's thanks to support for this
-in the rpkg utility, which brings a new feature called "rpkg macros". Let's take https://pagure.io/rpkg-util
-project itself, which is raw sources with spec, and port it to our setup here.
+Needless to say, so far we have show-cased work with traditional packed sources only (spec + patches + tarballs)
+and this is how Fedora, CentOS, RHEL, Mageia and other distros work.
 
-FIXME:
+But what is quite special about this setup (DistGit+rpkg) is that you can have unpacked sources repos (spec +
+raw source files) as well and that's thanks to support for this in the rpkg utility.
 
-    # /usr/share/dist-git/setup_git_package rpkg-util
-    $ git clone https://pagure.io/rpkg-util
-    $ cd rpkg-util
-    $ git remote set-url origin ssh://fred@localhost/var/lib/dist-git/git/rpms/rpkg-util
-    $ git pull --rebase
-    $ rpkg push
+Let's take https://pagure.io/rpkg-util project itself, which is raw sources with spec, and port it to
+our setup here. 
 
-So we have finished the migration.
+*Here we are no longer mentioning commands for switching between users and dirs.*
 
+    admin@localhost / $ /usr/share/dist-git/setup_git_package hello_rpkg
+
+    joe@localhost ~ $ rpkg clone hello_rpkg
+    joe@localhost ~ $ cd hello_rpkg
+    joe@localhost hello_rpkg $ git pull https://pagure.io/hello_rpkg --allow-unrelated-histories # on EPEL, omit --allow-unrelated-histories switch
+    joe@localhost hello_rpkg $ ls
+    Makefile  README.md  hello_rpkg.spec.rpkg  main.c  sources
+
+So we have imported code and history from https://pagure.io/hello_rpkg project. There is sources file in addition
+to the content at https://pagure.io/hello_rpkg, which was created by `/usr/share/dist-git/setup_git_package` script.
+We may remove it as we won't probably be using lookaside cache for this particular project.
+
+    joe@localhost hello_rpkg $ rm sources
+    joe@localhost hello_rpkg $ git commit -a -m 'remove unneeded sources file'
+
+**Note:** In the current upstream version of dist-git at https://github.com/release-engineering/dist-git,
+the 'sources' file is no longer being precreated.
+
+And let's push:
+
+    joe@localhost hello_rpkg $ rpkg push
+    [master 244a716] remove unneeded sources file
+    1 file changed, 0 insertions(+), 0 deletions(-)
+    delete mode 100644 sources
+
+to get the code and history import really finished.
+
+Now it is time a play around with the code a little bit. So let's again try to generate an srpm, this time from unpacked sources:
+
+    joe@localhost hello_rpkg $ rpkg srpm
+    git_dir_pack: packing path /home/joe/hello_rpkg
+    git_dir_pack: Wrote: /tmp/rpkg/hello_rpkg-1-2oz9vvwk/hello_rpkg-0.0.git.8.1a2615b.tar.gz
+    Wrote: /tmp/rpkg/hello_rpkg-1-2oz9vvwk/hello_rpkg.spec
+    Wrote: /tmp/rpkg/hello_rpkg-1-2oz9vvwk/hello_rpkg-0.0.git.8.1a2615b-1.fc28.src.rpm
+
+You can see that it works as well as it worked for the packed case (spec+patches+tarballs). How is that
+even possible? You will find out when you closer examine the hello_rpkg.spec.rpkg file, which is an rpkg
+spec file template and particularly at the line defining an rpm source ('Source:'), which is usually
+a tarball stored in the lookaside cache:
+
+    joe@localhost hello_rpkg $ grep 'Source:' hello_rpkg.spec.rpkg
+    Source:     {{{ git_dir_pack }}}
+
+``{{{ git_dir_pack }}}`` is a special rpkg macro, which tells rpkg that the tarball should be
+dynamically generated from the Git checked-out content. That generated tarball will be then
+used to built the final srpm. This is different from the standard procedure where the tarball
+is statically present next to the spec file (even though just as a link to the lookaside until
+you download it).
+
+This feature of `rpkg` utility enables you to work with the sources in their unpacked form and
+only pack them when you want to build them.
 
 Anything else?
 --------------
