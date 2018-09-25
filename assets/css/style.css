@@ -1,0 +1,9 @@
+hr {
+  border: 1px solid #ddd;
+  margin: 30px 40px 30px 30px;
+}
+
+.comment {
+  font-style: italic;
+  color: gray;
+}
