@@ -105,7 +105,7 @@ binary package and there is more (see `man rpkg` for other useful commands like 
 Okay, I want to try the DistGit package out. How?
 -------------------------------------------------
 
-EDIT: See up-to-date version of this tutorial at https://clime.github.io/2018/09/18/starting-your-own-distro.html
+EDIT: See up-to-date version of this tutorial at <https://clime.github.io/2018/09/18/starting-your-own-distro.html>
 
 Normally, you would need a server machine and a client machine but for playing around, you can just use localhost for both.
 

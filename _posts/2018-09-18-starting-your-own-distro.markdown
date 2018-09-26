@@ -17,17 +17,30 @@ distribution.
 Okay, show me what you've got
 -----------------------------
 
-The following tutorial will be run with ``dist-git 1.8`` and ``rpkg 2.5``.
+The following tutorial will be run with `dist-git 1.8-1` and `rpkg 2.6-1`. You may find packages of those or higher versions
+already in official Fedora and EPEL repositories but we will be using Fedora coprs [clime/rpkg-util](https://copr.fedorainfracloud.org/coprs/clime/rpkg-util/)
+and [clime/dist-git](https://copr.fedorainfracloud.org/coprs/clime/dist-git/) to ensure we have the needed up-to-date versions.
+
+*Note: On EPEL, we will also use updated `git 1.8.3.1-19_git_c` from [clime/rpkg-util](https://copr.fedorainfracloud.org/coprs/clime/rpkg-util/).*
+
+If you use vagrant and you want to skip the setup part below, you can use this [Vagrantfile](https://clime.cz/dist-git/Vagrantfile) for Fedora-28.
+You can then immediately jump <a href="#setup-end">here</a>.
+
+Otherwise, let's begin!
 
 Normally, you would use a server machine and a client machine but for simple playing around, we can just use localhost
 to substitute for both. We recommend to create an isolated container or a virtual machine to carry out the tutorial.
 
 First, install the dist-git package:
 
+    # dnf install dnf-plugins-core
+    # dnf copr enable clime/dist-git
     # dnf install dist-git
 
-on CentOS7 or RHEL7 with EPEL7 enabled:
+on CentOS7 or RHEL7 with EPEL7 (`yum install epel-release`) enabled:
 
+    # yum install yum-plugin-copr
+    # yum copr enable clime/dist-git
     # yum install dist-git
 
 Next step is to setup Apache for uploading source tarballs.
@@ -70,7 +83,7 @@ group that got created on installation of the dist-git package.
     # useradd admin -G packager
     # useradd joe -G packager
 
-There is very few things missing to set up at this point for the server part now. First,
+There is very few things missing to set up the server part at this point. First,
 start ``dist-git.socket`` service so that `git://` protocol works for anonymous read-only
 access (we shall use it later):
 
@@ -105,20 +118,26 @@ joe@localhost / $ cd
 joe@localhost ~ $ ssh-keygen  <span class="comment"># press enter on everything</span>
 joe@localhost ~ $ cat .ssh/id_rsa.pub >> .ssh/authorized_keys
 joe@localhost ~ $ chmod 600 .ssh/authorized_keys
-joe@localhost ~ $ ssh localhost  <span class="comment"># should work after typing 'yes', you might need to do rm /run/nologin</span>
+joe@localhost ~ $ ssh localhost  <span class="comment"># on Fedora, you might need to do rm /run/nologin as root</span>
 </pre>
 
-Now for the client part, install the `rpkg` package. On Fedora, you can just invoke:
+Now for the client part, install the `rpkg` package. We will use the latest package version from
+[copr.fedoraproject.org/clime/rpkg-util](https://copr.fedorainfracloud.org/coprs/clime/rpkg-util/) project.
 
+On Fedora, you can invoke:
+
+    # dnf copr enable clime/rpkg-util
     # dnf install rpkg
 
-On EPEL, you can install the rpkg package from a copr repository:
+On EPEL, you can do:
 
-    # yum install yum-plugin-copr
-    # yum copr enable clime/rpkg-util
-    # yum install rpkg
+<pre>
+# yum copr enable clime/rpkg-util
+# yum install rpkg
+# yum install git  <span class="comment"># to upgrade git from the enabled copr repo</span>
+</pre>
 
-Put the following configuration into `/etc/rpkg.conf`:
+Put the following configuration into `/etc/rpkg.conf` (by replacing the default content):
 
     [rpkg]
     preprocess_spec = True
@@ -134,7 +153,7 @@ Put the following configuration into `/etc/rpkg.conf`:
     gitbaseurl = ssh://%(user)s@localhost/var/lib/dist-git/git/%(module)s
     anongiturl = git://localhost/%(module)s
 
-That's it! Let's create our first DistGit repository.
+<span id="setup-end"></span>That's it! Let's create our first DistGit repository.
 
 <pre>
 # su admin
@@ -161,7 +180,7 @@ Now we are in our local cloned Git repository. Let's initialize it with some pub
 
 <pre>
 joe@localhost package $ curl https://clime.cz/prunerepo-1.13-1.fc28.src.rpm -o /tmp/prunerepo-1.13-1.fc28.src.rpm
-joe@localhost package $ rpkg import /tmp/prunerepo-1.13-1.fc28.src.rpm  <span class="comment"># unpack src.rpm, upload tarballs dist-git's lookaside and modify local repo accordingly</span>
+joe@localhost package $ rpkg import /tmp/prunerepo-1.13-1.fc28.src.rpm  <span class="comment"># unpack src.rpm, upload tarball into dist-git's lookaside and modify local repo accordingly</span>
 joe@localhost package $ git status  <span class="comment"># display what has been changed in the local git repo</span>
 On branch master
 Your branch is up-to-date with 'origin/master'.
@@ -182,8 +201,8 @@ joe@localhost package $ git config --global user.name "joe"
 joe@localhost package $ git commit -m "DistGit test update" -a  <span class="comment"># commit changes to the local Git repo</span>
 joe@localhost package $ git rev-parse master  <span class="comment"># show commit hash, output will differ for you</span>
 d8d68e0d8e47455ca686516b45a65e37d752fbbd
-joe@localhost package $ rpkg push  <span class="comment"># push local git changes to DistGit</span>
 joe@localhost package $ rpkg srpm  <span class="comment"># build srpm just to test things out</span>
+joe@localhost package $ rpkg push  <span class="comment"># push local git changes to DistGit</span>
 Wrote: /tmp/rpkg/prunerepo-1-qzygm0hc/prunerepo.spec
 Wrote: /tmp/rpkg/prunerepo-1-qzygm0hc/prunerepo-1.13-1.fc28.src.rpm
 joe@localhost package $ rpkg build  <span class="comment"># build package in Copr BuildSystem, this needs copr-cli tool to be installed</span>
@@ -221,8 +240,8 @@ very basic initial setup.
 Needless to say, so far we have show-cased work with traditional packed sources only (spec + patches + tarballs)
 and this is how Fedora, CentOS, RHEL, Mageia and other distros work.
 
-What is quite special about this setup (DistGit+rpkg) is that you can have unpacked sources repos
-(spec + raw source files) as well and that's thanks to support for this in the rpkg utility.
+What is quite interesting about this setup (DistGit+rpkg) is that you can have unpacked sources repos
+(spec + raw source files) in DistGit as well and that's thanks to support for this in the rpkg utility.
 
 Let's take <https://pagure.io/hello_rpkg> project, which is raw sources with spec, and import
 it to our setup here. 
@@ -252,9 +271,6 @@ the empty 'sources' file is no longer being pregenerated.
 And let's push:
 
     joe@localhost hello_rpkg $ rpkg push
-    [master 244a716] remove unneeded sources file
-    1 file changed, 0 insertions(+), 0 deletions(-)
-    delete mode 100644 sources
 
 to get the code and history import finished.
 
@@ -285,12 +301,12 @@ until you download it) and can be just used to build an srpm.
 This feature of `rpkg` utility enables you to work with the sources in their unpacked form and
 only pack them when you need to build them. With this feature, instead of adding patch files
 and `Patch:` directives into the spec file, you could just commit the changes without needing
-to generate patch files from them.
+to generate patch files at all.
 
-That's it. This tutorial the basic gist of how it works under the hood in Fedora and
+That's it. This tutorial should give you the basic gist of how it works under the hood in Fedora and
 similarly, in other rpm distros. All those distros still use just the traditional spec+patches+tarballs
-approach exclusively, however. So if you use the setup presented here, you are going to be ahead of them
-as far as Git package maintenance goes.
+approach. So if you use the setup presented here, you are going to be ahead of them as far as Git package
+maintenance goes.
 
 Anything else?
 --------------
